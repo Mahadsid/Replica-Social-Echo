@@ -7,7 +7,21 @@ dotenv.config({
 })
 
 
-connectDB();
+connectDB()
+    .then(() => {
+        //always check for error before listen good practice
+        app.on("error", (error) => {
+            console.log("ERRORR: before listen in index.js", error);
+            throw error;
+        })
+        //then listen
+        app.listen(process.env.PORT || 8000, () => {
+            console.log(`Server is running at port : ${process.env.PORT}`);
+        })
+    })
+    .catch((err) => {
+        console.log("MONGODB connection failed (in index.js) !!!", err);
+    })
 
 
 //iife database and express connection example
