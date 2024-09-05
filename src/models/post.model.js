@@ -1,12 +1,11 @@
-import mongoose, { Schema } from "mongoose";
-import * as fs from "fs";
-import * as path from "path";
+import mongoose, { Schema } from "mongoose"; // ES module import for mongoose
+import { promises as fs } from "fs"; // Use fs.promises for async file operations
+import path from "path";
+import { fileURLToPath } from "url";
 
-const Schema = mongoose.Schema;
-
-
-const path = require("path");
-const { promisify } = require("util");
+// Since __dirname is not available in ES modules, we need to define it
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const postSchema = new Schema(
   {
@@ -55,32 +54,30 @@ postSchema.pre("remove", async function (next) {
   try {
     if (this.fileUrl) {
       const filename = path.basename(this.fileUrl);
-      const deleteFilePromise = promisify(fs.unlink)(
-        path.join(__dirname, "../assets/userFiles", filename)
-      );
-      await deleteFilePromise;
+      const filePath = path.join(__dirname, "../assets/userFiles", filename);
+
+      // Delete the file using fs.promises.unlink
+      await fs.unlink(filePath);
     }
 
-    await this.model("Comment").deleteMany({ _id: this.comments });
+    // Delete all related comments
+    await this.model("Comment").deleteMany({ _id: { $in: this.comments } });
 
+    // Delete related report
     await this.model("Report").deleteOne({
       post: this._id,
     });
 
+    // Update users' saved posts by removing the reference to this post
     await this.model("User").updateMany(
-      {
-        savedPosts: this._id,
-      },
-      {
-        $pull: {
-          savedPosts: this._id,
-        },
-      }
+      { savedPosts: this._id },
+      { $pull: { savedPosts: this._id } }
     );
+
     next();
   } catch (err) {
     next(err);
   }
 });
 
-module.exports = mongoose.model("Post", postSchema);
+export const Post = mongoose.model("Post", postSchema);
