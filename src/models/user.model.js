@@ -1,4 +1,6 @@
 import mongoose, { Schema } from "mongoose";
+import bcrypt from "bcrypt"; 
+
 
 const userSchema = new Schema(
     {
@@ -74,5 +76,18 @@ const userSchema = new Schema(
 )
 
 //For $text queries to work, MongoDB needs to index the field with a text index. To create this index by mongoose use
-userSchema.index({username: 'text'});
+userSchema.index({ username: 'text' });
+
+userSchema.pre("save", async function (next) {
+    if (!this.isModified("password")) return next();
+
+    this.password = bcrypt.hash(this.password, 10)
+    next()
+})
+
+//custom methods
+userSchema.methods.isPasswordCorrect = async function (password) {
+    return await bcrypt.compare(password, this.password)
+}
+
 export const User = mongoose.model("User", userSchema)
