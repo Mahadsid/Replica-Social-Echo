@@ -28,3 +28,5 @@ const emailSchema = new Schema(
 );
 
 export const Email = mongoose.model("Email", emailSchema);
+
+//all the models are completed i think time to write some controllers
