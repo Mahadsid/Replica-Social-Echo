@@ -1,15 +1,13 @@
 //since most of the work is async so wh not make a wrapper with higher order funcs'
 
-
 //version with promises
-const asyncHandler = (requestHandler) => { 
-    (req, res, next) => {
-        Promise.resolve(requestHandler(req, res, next)).catch((err) => next(err))
-    }
-}
+const asyncHandler = (requestHandler) => {
+  (req, res, next) => {
+    Promise.resolve(requestHandler(req, res, next)).catch((err) => next(err));
+  };
+};
 
-export { asyncHandler }
-
+export { asyncHandler };
 
 //another version with try catch
 
